@@ -20,6 +20,7 @@ public class ProfileService {
     public void completeWorkerOnboarding(String uid, WorkerProfile profileData) {
         User user = userRepository.findById(uid)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("Hello");
 
         // IMMUTABLE ROLE CHECK: Safety first
         if (user.getRole() != Role.WORKER) {
