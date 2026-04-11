@@ -1,4 +1,4 @@
-package com.kaarigar.config;
+package com.kaarigar.backend.config;
 
 import com.kaarigar.backend.config.FirebaseFilter;
 import org.springframework.context.annotation.Bean;
@@ -14,11 +14,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable for APIs
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable()) // Explicitly disable CORS for Postman testing
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/check-user").permitAll() // Frontend hits this first
-                        .anyRequest().authenticated() // Everything else needs a Google Token
+                        // Use ** to catch all variations of the auth path
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(new FirebaseFilter(), UsernamePasswordAuthenticationFilter.class);
 
