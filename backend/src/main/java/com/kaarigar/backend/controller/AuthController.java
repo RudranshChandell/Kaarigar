@@ -20,6 +20,7 @@ public class AuthController {
 
     @PostMapping("/check-user")
     public ResponseEntity<?> checkUser(@RequestBody Map<String, String> request) {
+        System.out.println("🚀 Controller: Reached the Check-User logic for UID: " + request.get("uid"));
         String uid = request.get("uid");
         String email = request.get("email");
         String requestedRole = request.get("role"); // Optional: Passed only during first signup

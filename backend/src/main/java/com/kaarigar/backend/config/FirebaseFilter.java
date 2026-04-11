@@ -19,7 +19,12 @@ public class FirebaseFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        System.out.println("🔍 Guard: Checking request for: " + request.getRequestURI());
+
         String header = request.getHeader("Authorization");
+        if (header == null) {
+            System.out.println("✅ Guard: No token found, allowing request to proceed to permitAll checks...");
+        }
 
         if (header != null && header.startsWith("Bearer ")) {
             String idToken = header.substring(7);
@@ -39,5 +44,12 @@ public class FirebaseFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        // This tells the filter: "If the request is for /api/auth, just skip the token check"
+        return path.startsWith("/api/auth/");
     }
 }
