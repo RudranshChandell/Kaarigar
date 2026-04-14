@@ -19,27 +19,30 @@ public class FirebaseFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("🔍 Guard: Checking request for: " + request.getRequestURI());
-
         String header = request.getHeader("Authorization");
-        if (header == null) {
-            System.out.println("✅ Guard: No token found, allowing request to proceed to permitAll checks...");
-        }
 
+        // 🛡️ Concept: Bearer Token Pattern
         if (header != null && header.startsWith("Bearer ")) {
             String idToken = header.substring(7);
             try {
-                // Verify the token with Firebase Admin SDK
-                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+                // 1. Verify the token with Firebase Admin SDK
+                FirebaseToken decodedToken = FirebaseToken.class.cast(
+                        com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken)
+                );
 
-                // If verified, set the user in the Security Context
+                // 2. Get the real UID from the token
+                String uid = decodedToken.getUid();
+
+                // 3. Tell Spring Security who this user is
+                // We create an 'Authentication' object and put it in the "Context"
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        decodedToken.getUid(), null, new ArrayList<>());
-
+                        uid, null, new ArrayList<>()
+                );
                 SecurityContextHolder.getContext().setAuthentication(auth);
+
             } catch (Exception e) {
-                // Token is invalid
-                SecurityContextHolder.clearContext();
+                // If token is expired or fake, the Guard stays closed
+                System.err.println("❌ Auth Error: " + e.getMessage());
             }
         }
 
@@ -50,6 +53,7 @@ public class FirebaseFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         // This tells the filter: "If the request is for /api/auth, just skip the token check"
-        return path.startsWith("/api/auth/");
+        return path.startsWith("/api/auth/") || path.startsWith("/api/profiles/worker/") || path.startsWith("/api/profiles/") ||
+                path.startsWith("/api/jobs/") ||path.startsWith("/api/reviews/") ;
     }
 }

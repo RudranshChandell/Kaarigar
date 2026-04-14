@@ -26,4 +26,7 @@ public class WorkerProfile {
     // We'll add PostGIS geometry later for the search, but for now:
     private Double latitude;
     private Double longitude;
+
+    private Double averageRating = 0.0;
+    private Integer totalReviews = 0;
 }
